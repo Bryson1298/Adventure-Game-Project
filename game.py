@@ -1,3 +1,6 @@
-import gamefunctions
+from gamefunctions import *
 
-gamefunctions.test_functions()
+def python_game():
+    gameloop()
+
+python_game()
