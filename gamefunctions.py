@@ -18,71 +18,113 @@ The module also includes example code that calls these functions to demonstrate 
 
 import random
 
+# Player stats
 player_health = 30
 player_power = 5
 player_gold = 10
 
+# Monster stats
 monster_health = 0
 monster_power = 0
 monster_reward = 0
 
+# Player inventory
+owned_items = 0
+inventory = {}
+
+# Available items
+items = [
+  {
+    "Item": "Sword",
+    "Type": "Weapon",
+    "Price": 15,
+    "Effect": "This item increases the user's damage, but has a limited number of uses.",
+    "Max Durability": 10,
+    "Current Durability": 10,
+    "Equipped": False
+  },
+  {
+    "Item": "Repel",
+    "Type": "Consumable",
+    "Price": 25,
+    "Effect": "Defeats one monster without HP loss"
+  },
+  {
+    "Item": "Buckler",
+    "Type": "Shield",
+    "Price": 15,
+    "Effect": "This item decreases  taken, but has a limited number of uses.",
+    "Max Durability": 6,
+    "Current Durability": 6,
+    "Equipped": False
+  },
+  {
+    "Item": "Map",
+    "Type": "Misc",
+    "Price": 5,
+  }
+]
+
 def print_welcome():
     """
-    Prints a welcome message to the user, asking for their name and greeting them.
+    Prints a welcome message to the player.
 
-    Returns:
-        None
+    Asks the player for their name and prints a centered welcome message.
     """
     name = input("What is your name? ")
     welcome_message = f"Hello, {name}!"
     print(f"{welcome_message:^20}")
 
-def print_shop_menu(item1, price1, item2, price2):
+def print_shop_menu():
     """
-    Prints a shop menu with two items and their prices.
+    Prints a menu of available items in the shop.
 
-    Parameters:
-        item1 (str): The name of the first item.
-        price1 (float): The price of the first item.
-        item2 (str): The name of the second item.
-        price2 (float): The price of the second item.
-
-    Returns:
-        None
+    Displays the items with their prices and prompts the player to purchase an item.
+    Calls the purchase_item function if the player chooses to buy an item.
     """
-    price1 = '$' + str(f'{price1:.2f}')
-    price2 = '$' + str(f'{price2:.2f}')
+    item1 = items[0]["Item"]
+    item2 = items[1]["Item"]
+    item3 = items[2]["Item"]
+    item4 = items[3]["Item"]
+
+    price1 = items[0]["Price"]
+    price2 = items[1]["Price"]
+    price3 = items[2]["Price"]
+    price4 = items[3]["Price"]
+
     print(f"{'/':-<21}\\")
-    print(f"|{item1:<12}{price1:>8}|")
-    print(f"|{item2:<12}{price2:>8}|")
+    print(f"|1){item1:<10}{'$' + str(price1):>8}|")
+    print(f"|2){item2:<10}{'$' + str(price2):>8}|")
+    print(f"|3){item3:<10}{'$' + str(price3):>8}|")
+    print(f"|4){item4:<10}{'$' + str(price4):>8}|")
     print(f"{'\\':-<21}/")
 
+    purchase = input("Would you like to purchase an item? (y/n): ")
+    if purchase == "y":
+        item_to_purchase = int(input("Which item would you like to purchase?(1-4) "))
+        purchase_item(item_to_purchase)
+
+
 # Function to simulate purchasing an item
-def purchase_item(itemPrice, startingMoney):
+def purchase_item(item_to_purchase):
     """
     Simulates purchasing an item, checking if the user has enough money.
-
-    Parameters:
-        itemPrice (float): The price of the item.
-        startingMoney (float): The amount of money the user starts with.
-
-    Returns:
-        float: The remaining money after the purchase.    """
+    """
     # Check if the user has enough money to buy the desired quantity
-    if startingMoney >= itemPrice:
-        amount_remaining = round((startingMoney - itemPrice), 2)
-        quantity_purchased = 1
+    itemPrice = items[item_to_purchase - 1]["Price"]
+    global player_gold
+
+    if player_gold >= itemPrice:
+        global owned_items
+        owned_items += 1
+        player_gold -= itemPrice
+        inventory[f'item_{owned_items}'] = (items[item_to_purchase - 1]["Item"])
+        print(f"You have purchased a {items[item_to_purchase - 1]['Item']}.\n"
+              f"Gold remaining: {player_gold}\n")
 
     else:
         # Print a message if the user doesn't have enough money
         print('\nNot enough money')
-        amount_remaining = startingMoney
-        quantity_purchased = 0
-    # Print the purchase details
-    print('\nQuantity purchased: ', quantity_purchased)
-    print('Amount remaining:', amount_remaining, '\n')
-    # Returns the purchase details
-    return amount_remaining
 
 # Function to create a random monster with specific attributes
 def new_random_monster():
@@ -179,16 +221,35 @@ def fight_monster():
     global monster_health
 
     while player_health > 0 and monster_health > 0:
+        if 'Repel' in inventory.values():
+            use_item = input('\nDo you want to use a Repel? (y/n): ')
+            if use_item == 'y':
+                monster_health = 0
+                remove_by_value(inventory, 'Repel')
+                print('You have fled using a Repel.')
 
-            print('\nThe monster fights back.')
-            player_health -= monster_power
+        else:
+            fight_or_flee = input('\nWould you like to fight or flee?\n')
 
-            print('You attack the monster.\n')
-            monster_health -= player_power
+            if fight_or_flee == 'fight':
+                print('You attack the monster.')
+                monster_health -= player_power
+                print(f'The monster has {monster_health} health.\n')
+                print('\nThe monster fights back.')
+                player_health -= monster_power
+                print(f'You have {player_health} health.')
+            elif fight_or_flee == 'flee':
+                print('\nYou run away from the monster.')
+                global monster_reward
+                monster_reward = 0
+                monster_health = 0
+            else:
+                print('\nInvalid input.')
+
+
 
     if player_health <= 0:
         print('You are defeated by the monster.\n')
-
 
     else:
         global player_gold
@@ -223,6 +284,50 @@ def rest_at_inn(current_gold, current_health):
     else:
         print('Not enough gold.\n')
 
+def remove_by_value(my_dict, value):
+    """
+    Removes all key-value pairs from a dictionary where the value matches a given value.
+
+    Args:
+        my_dict (dict): The dictionary to modify.
+        value: The value to remove from the dictionary.
+
+    Returns:
+        dict: A new dictionary with the specified value removed.
+    """
+    return {key: val for key, val in my_dict.items() if val != value}
+
+def equip_items():
+    """
+    Allows the player to equip an item from their inventory.
+
+    Prints a list of equipable items in the inventory and prompts the player to choose an item to equip.
+    Updates the player's power if a weapon is equipped.
+    """
+    print('\nEquipable items:')
+    for item in inventory:
+        print(inventory[item])
+    print('None\n')
+    item_to_equip = input("What item do you want to equip? ")
+    if item_to_equip == 'Sword':
+        global player_power
+        player_power += 5
+
+def open_inventory():
+    """
+    Opens the player's inventory and allows them to equip items.
+
+    Prints the contents of the inventory and prompts the player to equip an item.
+    Calls the equip_items function if the player chooses to equip an item.
+    """
+    i = 0
+    for item in inventory:
+        print(f"{inventory[item]}")
+        i += 1
+    equip_choice = input("Would you like to equip an item(y/n)? ")
+    if equip_choice == 'y':
+
+        equip_items()
 
 def gameloop():
     """
@@ -233,15 +338,18 @@ def gameloop():
     Returns:
         None
     """
+
     choice = ''
-    while choice != '3':
+    while choice != '5':
         if player_health <= 0:
-            choice = '3'
+            choice = '5'
         else:
             choice = input('What would you like to do?\n'
                            '1) Leave town (Fight Monster)\n'
                            '2) Sleep (Restore HP for 5 Gold)\n'
-                           '3) Quit\n')
+                           '3) View Shop\n'
+                           '4) Open inventory\n'
+                           '5) Quit\n')
         print('You are in town.')
         print(f'Current Health: {player_health}, Current Gold: {player_gold}')
 
@@ -249,12 +357,16 @@ def gameloop():
             fight_monster()
 
         elif choice == '2':
-
             rest_at_inn(player_gold, player_health)
 
         elif choice == '3':
+            print_shop_menu()
 
+        elif choice == '4':
+            open_inventory()
+
+        elif choice == '5':
             print('\nThank you for playing.\n')
-        else:
 
+        else:
             print('Invalid choice, try again.\n')
