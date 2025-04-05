@@ -17,6 +17,11 @@ The module also includes example code that calls these functions to demonstrate 
 # and calls each of them 3 times
 
 import random
+import json
+
+player = []
+#On save, player = health, gold, inventory
+
 
 # Player stats
 player_health = 30
@@ -329,44 +334,20 @@ def open_inventory():
 
         equip_items()
 
-def gameloop():
-    """
-    The main game loop, allowing the player to choose between fighting a monster, resting at an inn, or quitting.
+def save():
+    player.append(player_health)
+    player.append(player_gold)
+    player.append(inventory)
+    save_and_quit(player)
 
-    The game continues until the player's health reaches 0 or they choose to quit.
+def save_and_quit(game_state, filename="save_game.json"):
+    with open(filename, "w") as f:
+        json.dump(game_state, f, indent=4)
 
-    Returns:
-        None
-    """
-
-    choice = ''
-    while choice != '5':
-        if player_health <= 0:
-            choice = '5'
-        else:
-            choice = input('What would you like to do?\n'
-                           '1) Leave town (Fight Monster)\n'
-                           '2) Sleep (Restore HP for 5 Gold)\n'
-                           '3) View Shop\n'
-                           '4) Open inventory\n'
-                           '5) Quit\n')
-        print('You are in town.')
-        print(f'Current Health: {player_health}, Current Gold: {player_gold}')
-
-        if choice == '1':
-            fight_monster()
-
-        elif choice == '2':
-            rest_at_inn(player_gold, player_health)
-
-        elif choice == '3':
-            print_shop_menu()
-
-        elif choice == '4':
-            open_inventory()
-
-        elif choice == '5':
-            print('\nThank you for playing.\n')
-
-        else:
-            print('Invalid choice, try again.\n')
+def load_game(filename="save_game.json"):
+    try:
+        with open(filename, "r") as f:
+            game_state = json.load(f)
+            return game_state
+    except FileNotFoundError:
+        return None  # Handle case where save file doesn't exist
