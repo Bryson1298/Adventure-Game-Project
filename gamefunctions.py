@@ -351,3 +351,4 @@ def load_game(filename="save_game.json"):
             return game_state
     except FileNotFoundError:
         return None  # Handle case where save file doesn't exist
+

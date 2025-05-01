@@ -5,7 +5,7 @@ import pygame
 import pickle
 import os
 
-# Global variables for player
+
 player_health = 100
 player_gold = 50
 
@@ -18,7 +18,6 @@ def save_monsters(monsters, filename="monster_data.pickle"):
         print(f"Monster data saved to {filename}")
     except Exception as e:
         print(f"Error saving monster data: {e}")
-
 
 def load_monsters(filename="monster_data.pickle", grid_width=10, grid_height=10, town_x=0, town_y=0):
     """Loads the list of monsters from a file."""
@@ -35,7 +34,6 @@ def load_monsters(filename="monster_data.pickle", grid_width=10, grid_height=10,
         monsters = create_initial_monsters(grid_width, grid_height, town_x, town_y)
     return monsters
 
-
 def create_initial_monsters(grid_width, grid_height, town_x, town_y):
     """Creates initial monsters for the game."""
     monsters = []
@@ -43,7 +41,6 @@ def create_initial_monsters(grid_width, grid_height, town_x, town_y):
         monster = WanderingMonster.new_random_monster(grid_width, grid_height, town_x, town_y)
         monsters.append(monster)
     return monsters
-
 
 def python_game():
     """Starts the main game loop."""
@@ -59,15 +56,14 @@ def python_game():
     else:
         print("Invalid input")
 
-
 def gameloop(monsters):
     """The main game loop, allowing the player to choose between fighting a monster, resting at an inn, or quitting."""
     choice = ''
     global player_health, player_gold
     running = True  # Ensure the game loop runs until the player quits
+
     # Initialize Pygame
     pygame.init()
-
     # Screen dimensions
     screen_width = 320  # 10 squares * 32 pixels/square
     screen_height = 320  # 10 squares * 32 pixels/square
@@ -100,14 +96,25 @@ def gameloop(monsters):
 
         # Draw monsters
         for monster in monsters:
-            pygame.draw.circle(screen, monster.color,
+            try:
+                monster_image = pygame.image.load(f'pygame.{monster.name}.jpg')
+                monster_image = pygame.transform.scale(monster_image, (square_size, square_size))
+                screen.blit(monster_image, (monster.x * 32, monster.y * 32))
+            except:
+                pygame.draw.circle(screen, monster.color,
                                (monster.x * square_size + square_size // 2, monster.y * square_size + square_size // 2),
                                square_size // 3)
 
         # Draw the player
-        player_rect = pygame.Rect(player_x * square_size, player_y * square_size, square_size, square_size)
-        pygame.draw.rect(screen, white, player_rect)
+        try:
+            player_image = pygame.image.load('pygame.Player.jpg')
+            player_image = pygame.transform.scale(player_image, (square_size, square_size))
+            screen.blit(player_image, (player_x, player_y))
 
+
+        except:
+            player_image = pygame.Rect(player_x * square_size, player_y * square_size, square_size, square_size)
+            pygame.draw.rect(screen, white, player_image)
         pygame.display.flip()  # Update the display
 
     while running:
@@ -124,7 +131,7 @@ def gameloop(monsters):
         if choice == '1':
             # Start the game loop for exploring
             player_x, player_y = town_x, town_y  # Start at town position
-            while running:  # New loop for map exploration
+            while running: # New loop for map exploration
                 player_moved = False  # Reset the flag
 
                 for event in pygame.event.get():
@@ -132,26 +139,26 @@ def gameloop(monsters):
                         running = False
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_UP and player_y > 0:
-                            player_y -= 1
+                            player_y -= 32
                             player_moved = True
-                        if event.key == pygame.K_DOWN and player_y < 9:
-                            player_y += 1
+                        if event.key == pygame.K_DOWN and player_y < 288:
+                            player_y += 32
                             player_moved = True
                         if event.key == pygame.K_LEFT and player_x > 0:
-                            player_x -= 1
+                            player_x -= 32
                             player_moved = True
-                        if event.key == pygame.K_RIGHT and player_x < 9:
-                            player_x += 1
+                        if event.key == pygame.K_RIGHT and player_x < 288:
+                            player_x += 32
                             player_moved = True
 
                         # Check for town interaction
-                        if player_x == town_x and player_y == town_y:
+                        if player_x / 32 == town_x and player_y / 32 == town_y:
                             print("You are back in town.")
                             gameloop(monsters)  # Return to town menu without quitting
 
                         # Check for monster encounter
                         for monster in monsters:
-                            if player_x == monster.x and player_y == monster.y:
+                            if player_x / 32 == monster.x and player_y / 32 == monster.y:
                                 print(f"You encountered a {monster.name}!")
                                 fight_monster()  # Implement this function for combat
                                 monsters.remove(monster)  # Remove the defeated monster
@@ -188,6 +195,5 @@ def gameloop(monsters):
     # Quit Pygame
     pygame.quit()
     save_monsters(monsters)  # Save monster data before quitting
-
 
 python_game()
