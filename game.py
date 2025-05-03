@@ -1,5 +1,7 @@
 from gamefunctions import *
 from WanderingMonster import WanderingMonster
+from FightingEnhanced import *
+
 
 import pygame
 import pickle
@@ -58,32 +60,13 @@ def python_game():
 
 def gameloop(monsters):
     """The main game loop, allowing the player to choose between fighting a monster, resting at an inn, or quitting."""
-    choice = ''
     global player_health, player_gold
     running = True  # Ensure the game loop runs until the player quits
 
     # Initialize Pygame
     pygame.init()
-    # Screen dimensions
-    screen_width = 320  # 10 squares * 32 pixels/square
-    screen_height = 320  # 10 squares * 32 pixels/square
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Map Exploration")
-
-    # Colors
-    black = (0, 0, 0)
-    white = (255, 255, 255)
-
-    # Square size
-    square_size = 32
-
-    # Player position (starts at town)
-    player_x = 0
-    player_y = 0
-
-    # Town position
-    town_x = 0
-    town_y = 0
 
     # Function to draw the map
     def draw_map():
@@ -100,6 +83,7 @@ def gameloop(monsters):
                 monster_image = pygame.image.load(f'pygame.{monster.name}.jpg')
                 monster_image = pygame.transform.scale(monster_image, (square_size, square_size))
                 screen.blit(monster_image, (monster.x * 32, monster.y * 32))
+
             except:
                 pygame.draw.circle(screen, monster.color,
                                (monster.x * square_size + square_size // 2, monster.y * square_size + square_size // 2),
@@ -115,6 +99,7 @@ def gameloop(monsters):
         except:
             player_image = pygame.Rect(player_x * square_size, player_y * square_size, square_size, square_size)
             pygame.draw.rect(screen, white, player_image)
+
         pygame.display.flip()  # Update the display
 
     while running:
@@ -160,7 +145,10 @@ def gameloop(monsters):
                         for monster in monsters:
                             if player_x / 32 == monster.x and player_y / 32 == monster.y:
                                 print(f"You encountered a {monster.name}!")
-                                fight_monster()  # Implement this function for combat
+                                player_health, player_gold, defeated = fight_monster_enhanced(screen, player_health,
+                                                                                              player_gold, monster,
+                                                                                              screen_width,
+                                                                                              screen_height)
                                 monsters.remove(monster)  # Remove the defeated monster
                                 if not monsters:  # Check if there are no monsters left
                                     print("All monsters defeated! Generating new monsters...")

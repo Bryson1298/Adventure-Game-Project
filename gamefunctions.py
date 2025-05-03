@@ -18,6 +18,7 @@ The module also includes example code that calls these functions to demonstrate 
 
 import random
 import json
+import pygame
 
 player = []
 #On save, player = health, gold, inventory
@@ -69,6 +70,31 @@ items = [
     "Price": 5,
   }
 ]
+
+# Screen dimensions
+screen_width = 320  # 10 squares * 32 pixels/square
+screen_height = 320  # 10 squares * 32 pixels/square
+
+
+# Colors
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+green = (0, 255, 0)
+blue = (0, 0, 255)
+yellow = (255, 255, 0)
+
+# Square size
+square_size = 32
+
+# Player position (starts at town)
+player_x = 0
+player_y = 0
+
+# Town position
+town_x = 0
+town_y = 0
+
 
 def print_welcome():
     """
@@ -209,47 +235,6 @@ def new_random_monster():
 
         return monster_attributes
 
-def fight_monster():
-    """
-       Simulates a fight between the player and a randomly generated monster.
-
-       The player and monster take turns attacking each other until one of them reaches 0 health.
-
-       The player gains gold based on the monster's reward if they win the fight.
-
-       Returns:
-           None
-       """
-    new_random_monster()
-
-    global player_health
-    global monster_health
-
-    while player_health > 0 and monster_health > 0:
-        if 'Repel' in inventory.values():
-            use_item = input('\nDo you want to use a Repel? (y/n): ')
-            if use_item == 'y':
-                monster_health = 0
-                remove_by_value(inventory, 'Repel')
-                print('You have fled using a Repel.')
-
-        else:
-            fight_or_flee = input('\nWould you like to fight or flee?\n')
-
-            if fight_or_flee == 'fight':
-                print('You attack the monster.')
-                monster_health -= player_power
-                print(f'The monster has {monster_health} health.\n')
-                print('\nThe monster fights back.')
-                player_health -= monster_power
-                print(f'You have {player_health} health.')
-            elif fight_or_flee == 'flee':
-                print('\nYou run away from the monster.')
-                global monster_reward
-                monster_reward = 0
-                monster_health = 0
-            else:
-                print('\nInvalid input.')
 
 
 
